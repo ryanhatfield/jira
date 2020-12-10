@@ -27,6 +27,7 @@ require (
 	github.com/kr/pty v1.1.4 // indirect
 	github.com/mattn/go-colorable v0.0.9 // indirect
 	github.com/mattn/go-isatty v0.0.3 // indirect
+	github.com/mattn/go-sqlite3 v1.14.5
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b
 	github.com/mitchellh/go-wordwrap v1.0.1
 	github.com/olekukonko/tablewriter v0.0.3
@@ -34,7 +35,7 @@ require (
 	github.com/pkg/errors v0.8.0
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/testify v1.2.2
-	github.com/theckman/go-flock v0.4.0 // indirect
+	github.com/theckman/go-flock v0.4.0
 	github.com/tidwall/gjson v0.0.0-20180711011033-ba784d767ac7
 	github.com/tidwall/match v1.0.0 // indirect
 	github.com/tmc/keyring v0.0.0-20171121202319-839169085ae1

@@ -55,9 +55,10 @@ const (
 )
 
 type GlobalOptions struct {
-	// AuthenticationMethod is the method we use to authenticate with the jira serivce. Possible values are "api-token" or "session".
+	// AuthenticationMethod is the method we use to authenticate with the jira service. Possible values are "api-token", "session", or "cookie-monster".
 	// The default is "api-token" when the service endpoint ends with "atlassian.net", otherwise it "session".  Session authentication
-	// will promt for user password and use the /auth/1/session-login endpoint.
+	// will prompt for user password and use the /auth/1/session-login endpoint. When using "cookie-monster" authentication, the session cookies from
+	// chrome will be decrypted and used for authentication.
 	AuthenticationMethod figtree.StringOption `yaml:"authentication-method,omitempty" json:"authentication-method,omitempty"`
 
 	// Endpoint is the URL for the Jira service.  Something like: https://go-jira.atlassian.net
@@ -173,6 +174,28 @@ func register(app *kingpin.Application, o *oreo.Client, fig *figtree.FigTree) {
 			authHeader := fmt.Sprintf("Basic %s", base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", globals.Login.Value, token))))
 			req.Header.Add("Authorization", authHeader)
 		}
+
+		if globals.AuthMethod() == "cookie-monster" {
+			responseError := func() error {
+				return fmt.Errorf("Unable to log in with Chrome session, are you logged in? %s\nIf you've recently logged in, it can take up to 30 seconds for Chrome to save cookies to the file system", globals.Endpoint.Value)
+			}
+			// pull session cookies from chrome
+			endpoint := strings.TrimLeft(globals.Endpoint.Value, "https://")
+			cookies := GetCookies(endpoint, []string{"JSESSIONID", "atlassian.xsrf.token"})
+			// log.Noticef("cookies: %#v, %#v\n", cookies[0], cookies[1])
+			for _, c := range cookies {
+				if c.Name == "atlassian.xsrf.token" && strings.HasSuffix(c.Value, "lout") {
+					return nil, responseError()
+				}
+			}
+			// TODO: update this to pull from session cache, not from chrome every time.
+			// this seems to set the cookies for the request,
+			// but they don't persist to the FS for some reason.
+			for _, c := range cookies {
+				req.AddCookie(c)
+			}
+		}
+
 		return req, nil
 	})
 
